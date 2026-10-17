@@ -817,6 +817,7 @@
           <h3>Registration Received</h3>
           <p>Dhanyavaad! Form aur payment proof mil gaya.</p>
           <p style="color:var(--gold-2);font-weight:700" id="success-name"></p>
+          <p style="color:var(--muted);font-size:0.88rem;margin-top:0.35rem" id="success-msg-note"></p>
           <div class="actions">
             <button type="button" class="btn btn-outline" id="btn-done-close">Close</button>
           </div>
@@ -829,8 +830,27 @@
     (function () {
       const UPI_ID = "9414314758@hdfc";
       const PAY_TO = "94143 14758";
+      const NOTIFY_WHATSAPP = "9828373863";
       const AMOUNT = "4444";
       const PAYEE = "RAJESH SRIVASTAV";
+
+      function sendPaymentReceivedMsg(reg) {
+        const name = (reg && reg.fullName) ? reg.fullName : "User";
+        const phone = (reg && reg.phone) ? reg.phone : "-";
+        const email = (reg && reg.email) ? reg.email : "-";
+        const msg =
+          "Payment Received ✅\n\n" +
+          "Name: " + name + "\n" +
+          "Phone: " + phone + "\n" +
+          "Email: " + email + "\n" +
+          "Amount: Rs " + AMOUNT + "\n" +
+          "Course: GEO Energy Practical Course\n\n" +
+          "Payment screenshot submit ho chuka hai.";
+
+        const url = "https://wa.me/" + NOTIFY_WHATSAPP + "?text=" + encodeURIComponent(msg);
+        window.open(url, "_blank");
+        return name;
+      }
 
       const modal = document.getElementById("book-modal");
       const form = document.getElementById("reg-form");
@@ -1011,9 +1031,12 @@
           );
         } catch (err) {}
 
+        const userName = sendPaymentReceivedMsg(registration);
+
         document.getElementById("success-name").textContent =
-          (registration && registration.fullName ? registration.fullName : "") +
-          " • Pay to " + PAY_TO;
+          userName + " • Pay to " + PAY_TO;
+        document.getElementById("success-msg-note").textContent =
+          "WhatsApp pe message open hua: Payment Received — " + userName;
         showPanel("done");
       });
     })();
