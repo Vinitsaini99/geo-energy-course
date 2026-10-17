@@ -830,26 +830,44 @@
     (function () {
       const UPI_ID = "9414314758@hdfc";
       const PAY_TO = "94143 14758";
-      const NOTIFY_WHATSAPP = "9828373863";
+      /* Free email notify — FormSubmit.co (pehli baar inbox mein Activate link aayega) */
+      const NOTIFY_EMAIL = "sainivinit16@gmail.com";
       const AMOUNT = "4444";
       const PAYEE = "RAJESH SRIVASTAV";
 
-      function sendPaymentReceivedMsg(reg) {
+      function sendPaymentReceivedEmail(reg) {
         const name = (reg && reg.fullName) ? reg.fullName : "User";
         const phone = (reg && reg.phone) ? reg.phone : "-";
-        const email = (reg && reg.email) ? reg.email : "-";
-        const msg =
-          "Payment Received ✅\n\n" +
-          "Name: " + name + "\n" +
-          "Phone: " + phone + "\n" +
-          "Email: " + email + "\n" +
-          "Amount: Rs " + AMOUNT + "\n" +
-          "Course: GEO Energy Practical Course\n\n" +
-          "Payment screenshot submit ho chuka hai.";
+        const userEmail = (reg && reg.email) ? reg.email : "-";
+        const city = (reg && reg.city) ? reg.city : "-";
 
-        const url = "https://wa.me/" + NOTIFY_WHATSAPP + "?text=" + encodeURIComponent(msg);
-        window.open(url, "_blank");
-        return name;
+        return fetch("https://formsubmit.co/ajax/" + encodeURIComponent(NOTIFY_EMAIL), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+          },
+          body: JSON.stringify({
+            _subject: "Payment Received — " + name,
+            _template: "table",
+            _captcha: "false",
+            status: "Payment Received",
+            name: name,
+            phone: phone,
+            email: userEmail,
+            city: city,
+            amount: "Rs " + AMOUNT,
+            course: "GEO Energy Practical Course",
+            pay_to: PAY_TO,
+            message: "Payment screenshot submit ho chuka hai. User: " + name
+          })
+        }).then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            return { ok: res.ok, name: name, data: data };
+          });
+        }).catch(function () {
+          return { ok: false, name: name };
+        });
       }
 
       const modal = document.getElementById("book-modal");
@@ -1031,12 +1049,23 @@
           );
         } catch (err) {}
 
-        const userName = sendPaymentReceivedMsg(registration);
+        const noteEl = document.getElementById("success-msg-note");
+        noteEl.textContent = "Payment mail bheji ja rahi hai...";
 
-        document.getElementById("success-name").textContent =
-          userName + " • Pay to " + PAY_TO;
-        document.getElementById("success-msg-note").textContent =
-          "WhatsApp pe message open hua: Payment Received — " + userName;
+        sendPaymentReceivedEmail(registration).then(function (result) {
+          document.getElementById("success-name").textContent =
+            result.name + " • Pay to " + PAY_TO;
+          if (result.ok) {
+            noteEl.textContent =
+              "Mail bhej di gayi: Payment Received — " + result.name +
+              " (" + NOTIFY_EMAIL + ")";
+          } else {
+            noteEl.textContent =
+              "Mail send fail. Pehli baar " + NOTIFY_EMAIL +
+              " pe FormSubmit Activate link check karein, phir dubara try karein.";
+          }
+        });
+
         showPanel("done");
       });
     })();
