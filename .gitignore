@@ -1,0 +1,8 @@
+.DS_Store
+Thumbs.db
+.env
+.env.*
+.vercel
+node_modules/
+*.log
+assets/portrait-preview.png
